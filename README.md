@@ -7,7 +7,7 @@ This repository contains reinforcement learning exercises and implementations.
 ## 📋 Table of Contents
 
 - [Q1: GridWorld with Value Iteration](#q1-gridworld-with-value-iteration)
-- [Q2: TBD](#q2-tbd)
+- [Q2: Autonomous Car Navigation (DQN)](#q2-autonomous-car-navigation-dqn)
 - [Installation](#installation)
 - [Usage](#usage)
 
@@ -149,9 +149,51 @@ python GridWorld.py
 
 ---
 
-## Q2: TBD
+## Q2: Autonomous Car Navigation (DQN)
 
-*Details to be added*
+### Overview
+This project involves training an autonomous car agent to navigate a complex city map with multiple targets using Deep Q-Learning (DQN). The agent must learn to stay on the road, utilize fast lanes (red roads), and reach sequential targets (checkpoints).
+
+**Demo Video:** [Autonomous Car Navigation - DQN](https://youtu.be/q1pvpVN0EU4)
+
+### Key Features
+1. **Dynamic Environment**: A top-down city map with different road types (White=Normal, Red=High-Speed).
+2. **Advanced Perception**: 7 distance sensors providing a "boundary signal" to detect road edges and obstacles.
+3. **UVFA (Universal Value Function Approximator)**: The agent takes its own position and the current target's position as input, allowing it to navigate towards any target without retraining. This is implemented by providing the network with the normalized distance (`dist / 1464.0`) and relative angle to the target.
+4. **Checkpoint System**: Implements a "respawn" logic where the car resets to the last reached target upon crashing, facilitating learning of long sequential paths.
+
+### Fine-Tuning Steps for Success
+To achieve stable learning and successful navigation, the following specific parameters and the corresponding strategies were implemented:
+
+#### 1. Perception & Physics
+- **Sensor Range**: Configured `SENSOR_DIST = 3` and `SENSOR_ANGLE = 90` for boundary detection.
+- **Vehicle Dynamics**: Set `SPEED = 2`, `TURN_SPEED = 15`, and `SHARP_TURN = 45` to balance maneuverability and control.
+- **Robust Boundary Detection**: Refined color detection thresholds in the code to handle blended pixels between red and white roads, ensuring the car doesn't perceive transitions as "crashes."
+- **Variable Speed Profile**: Implemented logic where the car drives at 2.0 speed on red roads and 1.0 on white roads, teaching the agent to prioritize faster routes.
+
+#### 2. Reward Shaping
+- **Oscillation Mitigation**: Added a specific penalty for turning actions (`-0.2`) to discourage the car from wiggling or spinning in place.
+- **Progress Incentives**: Implemented rewards for closing distance to the target (`diff * 2.0`) and penalties for moving away (`diff * 1.5`).
+- **Target Reach Rewards**: Balanced episode-end rewards (+100 for target, -100 for crash) with step-wise rewards to maintain steady learning.
+
+#### 3. Hyperparameter Optimization & Stability
+- **Learning Rate**: Reduced `LR` to `0.0001` to ensure stable convergence and prevent weight divergence.
+- **Batch Size**: Set `BATCH_SIZE = 128` to provide a good balance between training stability and computation speed.
+- **Discount Factor**: Set `GAMMA = 0.6` to prioritize immediate navigation safety and road following.
+- **Target Update Policy**: Set `TAU = 0.005` for soft target network updates.
+- **Gradient Clipping**: Implemented gradient clipping (`max_norm = 0.5`) to prevent "catastrophic forgetting" caused by large weight updates.
+- **Boltzmann (Softmax) Exploration**: Replaced standard epsilon-greedy with Boltzmann exploration. This uses a temperature-scaled Softmax distribution over Q-values to sample actions. The benefit is "intelligent exploration": instead of picking a completely random direction, the agent is more likely to pick actions that it thinks are "reasonably good," while still avoiding becoming stuck in a single sub-optimal strategy.
+- **Exploration Strategy**: Configured `EPS_DECAY_EPISODES = 250` for a cosine decay exploration schedule, which directly controls the Boltzmann temperature.
+
+#### 4. Visualization & Monitoring
+- **Real-time Performance Charts**: Added live charts for Rewards, Loss, and Epsilon to track training health.
+- **Moving Average Logging**: Implemented a moving average in the logs to distinguish long-term progress from short-term noise.
+
+### Running Q2
+```bash
+cd q2
+python citymap_assignment.py
+```
 
 ---
 
