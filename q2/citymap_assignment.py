@@ -81,7 +81,7 @@ SHARP_TURN = 45      # FIX ME! Sharp turn angle for tight corners (degrees) - To
 BATCH_SIZE = 128      # FIX ME! Number of experiences sampled per training step - Too small!
                     # Hint: Typically 32-512 for stability
 
-GAMMA = 0.6        # FIX ME! Discount factor for future rewards (0 to 1)
+GAMMA = 0.99        # FIX ME! Discount factor for future rewards (0 to 1)
                     # Too low - agent won't care about future!
                     # Hint: Usually 0.9-0.99
 
